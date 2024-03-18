@@ -1,4 +1,5 @@
 import prisma from "../DB/db.config.js";
+import redisCache from "../DB/redis-config.js";
 import NewsApitransform from "../transform/newsApiTransform.js";
 import { imageValidater, removeImage, uploadImage } from "../utils/helper.js";
 import { newsSchema } from "../validations/newsValidation.js";
@@ -81,7 +82,11 @@ class NewsController {
       const news = await prisma.news.create({
         data: payload,
       });
-
+      redisCache.del("/api/news", (err) => {
+        if (err) {
+          throw err;
+        }
+      });
       return res.json({
         status: 200,
         message: "News created successfully.",
@@ -137,7 +142,7 @@ class NewsController {
         where: { id: id },
       });
       if (user.id !== news.user_id) {
-        return res.json({
+        return res.status(400).json({
           status: 400,
           message: "You are not the owner of this post, you can't edit this ",
         });
@@ -186,8 +191,15 @@ class NewsController {
         },
       });
 
+      if (!news) {
+        return res.status(400).json({
+          status: 400,
+          message: "This news is not exist. ",
+        });
+      }
+
       if (user.id !== news.user_id) {
-        return res.json({
+        return res.status(400).json({
           status: 400,
           message: "You are not the owner of this post, you can't edit this ",
         });
