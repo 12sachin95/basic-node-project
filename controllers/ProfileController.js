@@ -1,8 +1,8 @@
-import { generateRandomNumber, imageValidater } from "../utils/helper.js";
+import { imageValidater, uploadImage } from "../utils/helper.js";
 import Prisma from "../DB/db.config.js";
 
 class ProfileController {
-  static async index(req, res) {
+  static async getUserProfile(req, res) {
     try {
       const user = req.user;
       return res.json({ status: 200, user });
@@ -10,9 +10,9 @@ class ProfileController {
       return res.json({ status: 500, error });
     }
   }
-  static async store() {}
-  static async show() {}
-  static async update(req, res) {
+  static async createUserProfile() {}
+  static async getUserProfile() {}
+  static async updateUserProfile(req, res) {
     const { id } = req.params;
     const user = req.user;
     try {
@@ -32,16 +32,7 @@ class ProfileController {
           },
         });
       }
-
-      const ext = profile.name.split(".")[1];
-      let imgName = generateRandomNumber() + "." + ext;
-
-      const uploadPath = process.cwd() + "/public/images/" + imgName;
-      profile.mv(uploadPath, (err) => {
-        if (err) {
-          throw err;
-        }
-      });
+      const imgName = uploadImage(image);
       await Prisma.users.update({
         data: {
           profile: imgName,
@@ -58,7 +49,7 @@ class ProfileController {
       return res.status(500).send({ error: err });
     }
   }
-  static async destroye() {}
+  static async deleteUserProfile() {}
 }
 
 export default ProfileController;
